@@ -1,5 +1,5 @@
 <template>
-  <section>
+
     <a-descriptions title="基础服务"/>
     <a-space v-for="item in servicesList.basicServices" :key="item.key">
       <a-card size="small" :title="item.title" class="services-card">
@@ -24,8 +24,22 @@
           </a-col>
         </div>
         <template #actions>
-          <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " @click="loadService(item)" />
-          <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 " @click="removeService(item)"/>
+          <a-popconfirm
+              title='确认下载安装组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="loadService(item)"
+          >
+            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+          </a-popconfirm>
+          <a-popconfirm
+              title='确认删除组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="removeService(item)"
+          >
+            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+          </a-popconfirm>
           <more-outlined @click="moreClick"/>
         </template>
       </a-card>
@@ -55,8 +69,22 @@
           </a-col>
         </div>
         <template #actions>
-          <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " @click="loadService(item)" />
-          <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 " @click="removeService(item)"/>
+          <a-popconfirm
+              title='确认下载安装组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="loadService(item)"
+          >
+            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+          </a-popconfirm>
+          <a-popconfirm
+              title='确认删除组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="removeService(item)"
+          >
+            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+          </a-popconfirm>
           <more-outlined @click="moreClick"/>
         </template>
       </a-card>
@@ -86,8 +114,22 @@
           </a-col>
         </div>
         <template #actions>
-          <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " @click="loadService(item)" />
-          <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 " @click="removeService(item)"/>
+          <a-popconfirm
+            title='确认下载安装组件？'
+            ok-text='确认'
+            cancel-text='取消'
+            @confirm="loadService(item)"
+          >
+            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+          </a-popconfirm>
+          <a-popconfirm
+            title='确认删除组件？'
+            ok-text='确认'
+            cancel-text='取消'
+            @confirm="removeService(item)"
+          >
+            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+          </a-popconfirm>
           <more-outlined @click="moreClick"/>
         </template>
       </a-card>
@@ -99,9 +141,9 @@
         placeholder="安装进程展示"
         v-model:value="installLogs"
         disabled
+        v-auto-animate
     ></a-textarea>
 
-  </section>
 </template>
 
 <script>
@@ -120,8 +162,15 @@ export default {
   mounted() {
     this.getServicesInfo();
     this.getLogs();
+    // 创建定时器，用于轮询
+    this.timer = setInterval(() => {
+      this.getServicesInfo();
+      this.getLogs();
+    }, 5000);
   },
   beforeUnmount() {
+    // 销毁定时器
+    clearInterval(this.timer);
   },
   data() {
     return {
@@ -135,40 +184,48 @@ export default {
   },
   methods:{
     getServicesInfo(){
-      let servicesData = ''
+      let dcServicesList = {
+        basicServices:[],
+        backendServices:[],
+        businessServices:[],
+      }
       // 获取服务信息
       axios.get('/v1/adminSettings/listSysInstallServices').
       then(res => {
-        servicesData = res.data.data
+        let servicesData = res.data.data
         // console.log("servicesData",servicesData)
         // 遍历服务信息
         servicesData && servicesData.forEach(item => {
           if(item.serviceType === '0'){
-            this.servicesList.basicServices.push(item)
+            dcServicesList.basicServices.push(item)
           }
           if(item.serviceType === '1'){
-            this.servicesList.backendServices.push(item)
+            dcServicesList.backendServices.push(item)
           }
           if(item.serviceType === '2'){
-            this.servicesList.businessServices.push(item)
+            dcServicesList.businessServices.push(item)
           }
         })
         // console.log("this.servicesList",this.servicesList)
-
+        // update servicesList
+        this.servicesList = dcServicesList
       })
           .catch(err => {
             console.log(err);
           })
     },
     getLogs(){
+      let tmpInstallLogs = '';
       axios.get('/v1/adminSettings/listSysInstallServicesLog')
         .then(res => {
           let logList = res.data.data;
           logList && logList.forEach(item => {
             //时间戳转换成时间
             let timeF = new Date(item.createTime).toLocaleString();
-            this.installLogs += timeF + ': ' + item.content + '\n'
+            tmpInstallLogs += timeF + ': ' + item.content + '\n'
           })
+          // 更细installLogs
+          this.installLogs = tmpInstallLogs
         })
         .catch(err => {
           console.log(err);

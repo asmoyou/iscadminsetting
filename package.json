@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^6.1.0",
+    "@formkit/auto-animate": "^0.7.0",
     "ant-design-vue": "^4.0.0",
     "axios": "^1.4.0",
     "core-js": "^3.8.3",
