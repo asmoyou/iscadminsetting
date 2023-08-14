@@ -2,7 +2,7 @@
 
     <a-descriptions title="基础服务"/>
     <a-space v-for="item in servicesList.basicServices" :key="item.key">
-      <a-card size="small" :title="item.title" class="services-card">
+      <a-card hoverable size="small" :title="item.title" class="services-card">
         <template #extra>
           安装：
           <check-circle-outlined v-if="item.installStatus === 1" style="color:green"/>
@@ -25,29 +25,42 @@
         </div>
         <template #actions>
           <a-popconfirm
+              v-if="item.installType === 1 && item.installStatus === 0 "
               title='确认下载安装组件？'
               ok-text='确认'
               cancel-text='取消'
               @confirm="loadService(item)"
           >
-            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+            <download-outlined />
           </a-popconfirm>
           <a-popconfirm
+              v-if="item.installType === 1 && item.installStatus === 1 "
               title='确认删除组件？'
               ok-text='确认'
               cancel-text='取消'
               @confirm="removeService(item)"
           >
-            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+            <delete-outlined />
           </a-popconfirm>
-          <more-outlined @click="moreClick"/>
+          <a-dropdown>
+            <more-outlined/>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <a @click="moreClick">重启</a>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+
         </template>
       </a-card>
+
     </a-space>
 
     <a-descriptions title="后端服务组件" />
     <a-space v-for="item in servicesList.backendServices" :key="item.key">
-      <a-card size="small" :title="item.title" class="services-card">
+      <a-card hoverable size="small" :title="item.title" class="services-card">
         <template #extra>
           安装：
           <check-circle-outlined v-if="item.installStatus === 1" style="color:green"/>
@@ -70,29 +83,42 @@
         </div>
         <template #actions>
           <a-popconfirm
+              v-if="item.installType === 1 && item.installStatus === 0 "
               title='确认下载安装组件？'
               ok-text='确认'
               cancel-text='取消'
               @confirm="loadService(item)"
           >
-            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+            <download-outlined />
           </a-popconfirm>
           <a-popconfirm
+              v-if="item.installType === 1 && item.installStatus === 1 "
               title='确认删除组件？'
               ok-text='确认'
               cancel-text='取消'
               @confirm="removeService(item)"
           >
-            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+            <delete-outlined />
           </a-popconfirm>
-          <more-outlined @click="moreClick"/>
+          <a-dropdown>
+            <more-outlined/>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <a @click="moreClick">重启</a>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+
         </template>
       </a-card>
+
     </a-space>
 
     <a-descriptions title="业务板块" />
     <a-space v-for="item in servicesList.businessServices" :key="item.key">
-      <a-card size="small" :title="item.title" class="services-card">
+      <a-card hoverable size="small" :title="item.title" class="services-card">
         <template #extra>
           安装：
           <check-circle-outlined v-if="item.installStatus === 1" style="color:green"/>
@@ -115,34 +141,49 @@
         </div>
         <template #actions>
           <a-popconfirm
-            title='确认下载安装组件？'
-            ok-text='确认'
-            cancel-text='取消'
-            @confirm="loadService(item)"
+              v-if="item.installType === 1 && item.installStatus === 0 "
+              title='确认下载安装组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="loadService(item)"
           >
-            <download-outlined v-if="item.serviceType !== '0' && item.installStatus === 0 " />
+            <download-outlined />
           </a-popconfirm>
           <a-popconfirm
-            title='确认删除组件？'
-            ok-text='确认'
-            cancel-text='取消'
-            @confirm="removeService(item)"
+              v-if="item.installType === 1 && item.installStatus === 1 "
+              title='确认删除组件？'
+              ok-text='确认'
+              cancel-text='取消'
+              @confirm="removeService(item)"
           >
-            <delete-outlined v-if="item.serviceType !== '0' && item.installStatus === 1 "/>
+            <delete-outlined />
           </a-popconfirm>
-          <more-outlined @click="moreClick"/>
+          <a-dropdown>
+            <more-outlined/>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <a @click="moreClick">重启</a>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+
         </template>
       </a-card>
     </a-space>
-    <a-divider orientation="left">安装日志</a-divider>
 
-    <a-textarea
-        rows="4"
-        placeholder="安装进程展示"
-        v-model:value="installLogs"
-        disabled
-        v-auto-animate
-    ></a-textarea>
+    <div class="logContent">
+      <a-divider orientation="left">安装日志</a-divider>
+      <a-textarea
+          rows="6"
+          placeholder="安装进程展示"
+          v-model:value="installLogs"
+          disabled
+          v-auto-animate
+      ></a-textarea>
+    </div>
+
 
 </template>
 
@@ -166,7 +207,7 @@ export default {
     this.timer = setInterval(() => {
       this.getServicesInfo();
       this.getLogs();
-    }, 5000);
+    }, 1000);
   },
   beforeUnmount() {
     // 销毁定时器
@@ -265,9 +306,9 @@ export default {
     moreClick(){
       //消息提醒
       this.$notification.open({
-        message: '静待开发',
+        message: '尚未开放',
         description:
-            '暂无更多功能',
+            '该功能尚未开放，敬请期待！',
       });
     }
   }
@@ -282,5 +323,9 @@ export default {
 .card-content {
   display: flex;
   align-items: center;
+}
+.logContent {
+  padding-bottom: 50px;
+  padding-right: 100px;
 }
 </style>
